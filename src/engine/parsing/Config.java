@@ -4,16 +4,14 @@
  */
 package engine.parsing;
 
-import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -80,14 +78,11 @@ public class Config {
 	 *             If the file cannot be written.
 	 */
 	public void write(String fileName) throws IOException {
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
-			Iterator<Entry<String, String>> it = map.entrySet().iterator();
-			while (it.hasNext()) {
-				Entry<String, String> pair = it.next();
-				String line = pair.getKey() + "=" + pair.getValue() + "\n";
-				bw.write(line);
-			}
-		}
+		Path filePath = Paths.get(fileName);
+		List<String> lines = new ArrayList<>();
+		for(Entry<String, String> entry : map.entrySet())
+			lines.add(entry.getKey() + "=" + entry.getValue());
+		Files.write(filePath, lines);
 	}
 
 	/**
@@ -99,7 +94,7 @@ public class Config {
 	 */
 	public String getString(String entry) {
 		String result = map.get(entry);
-		if (result != null && result.charAt(0) == '$') {
+		if (result != null && result.startsWith("$")) {
 			return getString(result.substring(1));
 		}
 		return result;
