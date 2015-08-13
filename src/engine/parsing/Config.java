@@ -4,15 +4,17 @@
  */
 package engine.parsing;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -36,30 +38,26 @@ public class Config {
 	 * @throws ParseException
 	 *             If the file cannot be properly parsed.
 	 */
-	public Config(String fileName) throws FileNotFoundException, IOException,
-			ParseException {
-		map = new HashMap<String, String>();
-		try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-			String line;
-			int lineNumber = 0;
-			while ((line = br.readLine()) != null) {
-				lineNumber++;
-				if (line.isEmpty()) {
-					continue;
-				}
+	public Config(String fileName) throws IOException, ParseException {
+		map = new HashMap<>();
+		Path filePath = Paths.get(fileName);
+		if (!Files.exists(filePath))
+			throw new FileNotFoundException(fileName);
+		List<String> lines = Files.readAllLines(filePath);
+		for (int lineNumber = 0; lineNumber < lines.size(); lineNumber++) {
+			String line = lines.get(lineNumber);
 
-				char start = line.charAt(0);
-				if (start == '[' || start == '#') {
-					continue;
-				}
-				String[] tokens = line.split("=");
-				if (tokens.length != 2) {
-					throw new ParseException("Line has too many '=' (line "
-							+ lineNumber + ")", lineNumber);
-				}
+			if (line.isEmpty())
+				continue;
 
-				map.put(tokens[0].trim(), tokens[1].trim());
-			}
+			if (line.startsWith("[") || line.startsWith("#"))
+				continue;
+
+			String[] tokens = line.split("=");
+			if (tokens.length != 2)
+				throw new ParseException("Only one '=' expected (line " + lineNumber + ")", lineNumber);
+
+			map.put(tokens[0].trim(), tokens[1].trim());
 		}
 	}
 
