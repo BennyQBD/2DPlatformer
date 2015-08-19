@@ -1,11 +1,16 @@
 package game;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import engine.components.ColliderComponent;
 import engine.components.CollisionComponent;
 import engine.components.SpriteComponent;
 import engine.core.entity.Entity;
+import engine.parsing.json.JSON;
+import engine.parsing.json.JSONValue;
 import engine.rendering.ArrayBitmap;
 import engine.rendering.Color;
 import engine.rendering.IRenderDevice;
@@ -17,11 +22,14 @@ public class PlatformLevel {
 	private ISpatialStructure<Entity> structure;
 	private SpriteSheetFactory sprites;
 	private Entity player;
+	private JSON entitySpec;
 	
-	public PlatformLevel(ISpatialStructure<Entity> structure, SpriteSheetFactory sprites) {
+	public PlatformLevel(ISpatialStructure<Entity> structure, SpriteSheetFactory sprites,
+			JSON entitySpec) {
 		this.structure = structure;
 		this.sprites = sprites;
 		this.player = null;
+		this.entitySpec = entitySpec;
 	}
 	
 	public Entity getPlayer() {
@@ -64,14 +72,28 @@ public class PlatformLevel {
 			new ColliderComponent(e);
 			new CollisionComponent(e);
 		}
-		String spriteName = null;
-		if(b == 1) {
-			spriteName = "testWall.png";
-		} else if(b == 255) {
-			spriteName = "testPlayer.png";
+		
+		JSONValue entityDescription = entitySpec.get().asObject().get("" + b);
+		if(entityDescription == null) {
+			return;
+		}
+		
+		if(b == 255) {
 			player = e;
 		}
-		new SpriteComponent(e, entityWidth, entityHeight, sprites.get(spriteName, 1, 1, 0,
-				IRenderDevice.FILTER_LINEAR), 0, Color.WHITE);
+		
+		Iterator<Entry<String, JSONValue>> it = entityDescription.asObject().entrySet().iterator();
+		while(it.hasNext()) {
+			Entry<String, JSONValue> entry = it.next();
+			Map<String, JSONValue> parameters = entry.getValue().asObject();
+			
+			switch(entry.getKey()) {
+			case "sprite":
+				new SpriteComponent(e, entityWidth, entityHeight, sprites.get(
+						parameters.get("fileName").asString(), 1, 1, 0,
+						IRenderDevice.FILTER_LINEAR), 0, Color.WHITE);
+				break;
+			}
+		}
 	}
 }

@@ -1,0 +1,12 @@
+{
+	"1": {
+		"sprite": {
+			"fileName": "testWall.png"
+		}
+	},
+	"255": {
+		"sprite": {
+			"fileName": "testPlayer.png"
+		}
+	}
+}
