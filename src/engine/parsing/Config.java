@@ -54,7 +54,7 @@ public class Config {
 				}
 				String[] tokens = line.split("=");
 				if (tokens.length != 2) {
-					throw new ParseException("Line has too many '=' (line "
+					throw new ParseException("Only one '=' expected (line "
 							+ lineNumber + ")", lineNumber);
 				}
 
